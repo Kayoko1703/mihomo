@@ -68,7 +68,7 @@ c: &c {type: http, behavior: classical, interval: 86400}
 d: &d {type: http, behavior: domain, interval: 86400}
 # 规则行为相关
 
-p: &p {type: http, interval: 42300, health-check: {enable: true, url: http://cp.cloudflare.com/generate_204, interval: 300}}
+p: &p {type: http, interval: 3600, health-check: {enable: true, url: http://cp.cloudflare.com/generate_204, interval: 300}}
 # 远程订阅相关
 
 g: &g {type: select, proxies: [Proxy, Auto, Fallback, HongKong, TaiWan, Singapore, Japan, America, Loadbalance, DIRECT]}
@@ -94,10 +94,10 @@ proxy-groups: # 策略组
 - {name: Proxy, <<: *g, proxies: [Auto,Fallback,HongKong,TaiWan,Singapore,Japan,America,Loadbalance]}
 
 # 自动选择
-- {name: Auto, type: url-test, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|游戏|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
+- {name: Auto, type: url-test, interval: 180, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|游戏|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
 
 # 负载均衡
-- {name: Loadbalance, type: load-balance, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|游戏|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
+- {name: Loadbalance, type: load-balance, interval: 300, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|游戏|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
 
 # 故障转移
 - {name: Fallback, type: fallback, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|游戏|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
@@ -142,19 +142,19 @@ proxy-groups: # 策略组
 - {name: Microsoft, <<: *m}
 
 # 香港节点
-- {name: HongKong, type: url-test, lazy: true, <<: *u, filter: '^(?=.*((?i)🇭🇰|香港|(\b(HK|Hong)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
+- {name: HongKong, type: url-test, interval: 300, lazy: true, <<: *u, filter: '^(?=.*((?i)🇭🇰|香港|(\b(HK|Hong)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
 
 # 台湾节点
-- {name: TaiWan, type: url-test, lazy: true, <<: *u, filter: '^(?=.*((?i)🇹🇼|🇨🇳|台湾|(\b(TW|Tai|Taiwan)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
+- {name: TaiWan, type: url-test, interval: 300, lazy: true, <<: *u, filter: '^(?=.*((?i)🇹🇼|🇨🇳|台湾|(\b(TW|Tai|Taiwan)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
 
 # 狮城节点
-- {name: Singapore, type: url-test, lazy: true, <<: *u, filter: '^(?=.*((?i)🇸🇬|新加坡|狮|(\b(SG|Singapore)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
+- {name: Singapore, type: url-test, interval: 300, lazy: true, <<: *u, filter: '^(?=.*((?i)🇸🇬|新加坡|狮|(\b(SG|Singapore)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
 
 # 日本节点
-- {name: Japan, type: url-test, lazy: true, <<: *u, filter: '^(?=.*((?i)🇯🇵|日本|川日|东京|大阪|泉日|埼玉|(\b(JP|Japan)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
+- {name: Japan, type: url-test, interval: 300, lazy: true, <<: *u, filter: '^(?=.*((?i)🇯🇵|日本|川日|东京|大阪|泉日|埼玉|(\b(JP|Japan)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
 
 # 美国节点
-- {name: America, type: url-test, lazy: true, <<: *u, filter: '^(?=.*((?i)🇺🇸|美国|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|(\b(US|United States)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
+- {name: America, type: url-test, interval: 300, lazy: true, <<: *u, filter: '^(?=.*((?i)🇺🇸|美国|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|(\b(US|United States)\b)))(?!.*((?i)回国|校园|游戏|(\b(GAME)\b))).*$'}
 
 # 漏网之鱼
 - {name: Final, <<: *g, proxies: [Proxy,DIRECT]}
