@@ -1,6 +1,6 @@
-mixed-port: 7890
+mixed-port: 8018
 # 本地混合代理(http和socks5合并）端口
-allow-lan: false
+allow-lan: true
 # 允许局域网连接(false/true)
 bind-address:
 # 监听IP白名单（当allow-lan：true），只允许列表设备
@@ -86,8 +86,7 @@ proxy-providers: # 远程订阅
     <<: *p
     url: "订阅"
     path: ./proxy_providers/mysubs.yaml
-# 1. 请使用Clash类型订阅链接填入引号""内使用,
-# 2. 或可使用通用订阅链接通过Sub-Store进行订阅转换(用于Stash)。
+# 1. 请使用Clash类型订阅链接填入引号""内使用
 
 proxy-groups: # 策略组
 
