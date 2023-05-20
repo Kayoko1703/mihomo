@@ -103,7 +103,7 @@ proxy-groups: # 策略组
 - {name: Fallback, type: fallback, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|游戏|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
 
 # 游戏平台
-- {name: Games, type: select, <<: *u, proxies: [Proxy,DIRECT], filter: '^(?=.*((?i)游戏|(\b(GAME)\b)))(?!.*((?i)回国|校园|(\b(GAME)\b))).*$'}
+- {name: Games, <<: *g}
 
 # 国外网站
 - {name: Global, <<: *g}
@@ -295,8 +295,8 @@ rules: # 分流规则引用
   - RULE-SET,Advertising,REJECT
   - RULE-SET,AdvertisingMiTV,REJECT
   - DOMAIN-KEYWORD,hkspeedup,DIRECT
-  - DOMAIN-KEYWORD,starrail,Games
-  - RULE-SET,HoYoverse,Games
+  - DOMAIN-KEYWORD,starrail,Proxy
+  - RULE-SET,HoYoverse,Proxy
   - RULE-SET,OpenAI,America
   - RULE-SET,YouTube,YouTube
   - RULE-SET,Netflix,Global
