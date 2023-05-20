@@ -1,6 +1,6 @@
-mixed-port: 7890
+mixed-port: 8018
 # 本地混合代理(http和socks5合并）端口
-allow-lan: false
+allow-lan: true
 # 允许局域网连接(false/true)
 bind-address:
 # 监听IP白名单（当allow-lan：true），只允许列表设备
@@ -86,7 +86,7 @@ proxy-providers: # 远程订阅
     <<: *p
     url: "订阅"
     path: ./proxy_providers/mysubs.yaml
-# 1. 请使用Clash类型订阅链接填入引号""内使用,
+# 请使用Clash类型订阅链接填入引号""内使用
 
 proxy-groups: # 策略组
 
@@ -94,16 +94,16 @@ proxy-groups: # 策略组
 - {name: Proxy, <<: *g, proxies: [Auto,Fallback,HongKong,TaiWan,Singapore,Japan,America,Loadbalance]}
 
 # 自动选择
-- {name: Auto, type: url-test, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
+- {name: Auto, type: url-test, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|游戏|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
 
 # 负载均衡
-- {name: Loadbalance, type: load-balance, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
+- {name: Loadbalance, type: load-balance, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|游戏|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
 
 # 故障转移
-- {name: Fallback, type: fallback, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
+- {name: Fallback, type: fallback, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|游戏|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
 
 # 游戏平台
-- {name: Games, type: select, <<: *u, proxies: [Proxy], filter: '^(?=.*((?i)游戏|(\b(GAME)\b)))(?!.*((?i)回国|校园|(\b(GAME)\b))).*$'}
+- {name: Games, type: select, <<: *u, proxies: [Proxy,DIRECT], filter: '^(?=.*((?i)游戏|(\b(GAME)\b)))(?!.*((?i)回国|校园|(\b(GAME)\b))).*$'}
 
 # 国外网站
 - {name: Global, <<: *g}
@@ -113,9 +113,6 @@ proxy-groups: # 策略组
 
 # YouTube
 - {name: YouTube, <<: *g}
-
-# Emby
-- {name: Emby, <<: *g}
 
 # 哔哩哔哩
 - {name: BiliBili, <<: *m, proxies: [DIRECT,HongKong,TaiWan]}
@@ -183,11 +180,6 @@ rule-providers: # 远程规则集
     <<: *d
     url: "https://rules.kr328.app/disney.yaml"
     path: ./ruleset/Disney.yaml
-
-  Emby: # Emby
-    <<: *c
-    url: "https://ghproxy.com/https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Emby/Emby.yaml"
-    path: ./ruleset/Emby.yaml
 
   Bahamut: # 动画疯
     <<: *d
@@ -294,9 +286,14 @@ rule-providers: # 远程规则集
     url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Advertising/Advertising_Domain.yaml"
     path: ./ruleset/Advertising.yaml
         
+  AdvertisingMiTV: # 去广告
+    <<: *d
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/release/rule/Clash/AdvertisingMiTV/AdvertisingMiTV.yaml"
+    path: ./ruleset/AdvertisingMiTV.yaml
 
 rules: # 分流规则引用
   - RULE-SET,Advertising,REJECT
+  - RULE-SET,AdvertisingMiTV,REJECT
   - DOMAIN-KEYWORD,hkspeedup,DIRECT
   - DOMAIN-KEYWORD,starrail,Games
   - RULE-SET,HoYoverse,Games
@@ -304,7 +301,6 @@ rules: # 分流规则引用
   - RULE-SET,YouTube,YouTube
   - RULE-SET,Netflix,Global
   - RULE-SET,Disney,Global
-  - RULE-SET,Emby,Emby
   - RULE-SET,Bahamut,TaiWan
   - RULE-SET,BiliIntl,Streaming
   - RULE-SET,BiliBili,BiliBili,no-resolve
