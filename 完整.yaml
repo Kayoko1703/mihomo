@@ -303,12 +303,12 @@ rules: # 分流规则引用
   - RULE-SET,Disney,Global
   - RULE-SET,Bahamut,TaiWan
   - RULE-SET,BiliIntl,Streaming
-  - RULE-SET,BiliBili,BiliBili,no-resolve
+  - RULE-SET,BiliBili,BiliBili
   - RULE-SET,Spotify,Spotify
-  - RULE-SET,NetEaseMusic,NetEaseMusic,no-resolve
+  - RULE-SET,NetEaseMusic,NetEaseMusic
   - RULE-SET,TikTok,TikTok
   - RULE-SET,GlobalMedia_Domain,Streaming
-  - RULE-SET,Telegram,Telegram,no-resolve
+  - RULE-SET,Telegram,Telegram
   - RULE-SET,GitHub,Global
   - RULE-SET,Bing,Global
   - RULE-SET,Twitter,Global
@@ -316,7 +316,7 @@ rules: # 分流规则引用
   - RULE-SET,Apple,Apple
   - RULE-SET,Google,Google
   - RULE-SET,Microsoft,Microsoft
-  - RULE-SET,Games,Games,no-resolve
+  - RULE-SET,Games,Games
   - RULE-SET,Global_Domain,Global
   - RULE-SET,China_Domain,Mainland
   - RULE-SET,Lan,DIRECT
