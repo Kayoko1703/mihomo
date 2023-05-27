@@ -105,6 +105,9 @@ proxy-groups: # 策略组
 # 游戏平台
 - {name: Games, <<: *g}
 
+# 游戏
+- {name: Gameplay, url-test, interval: 180, <<: *u}
+
 # 国外网站
 - {name: Global, <<: *g}
 
@@ -295,8 +298,10 @@ rules: # 分流规则引用
   - RULE-SET,Advertising,REJECT
   - RULE-SET,AdvertisingMiTV,REJECT
   - DOMAIN-KEYWORD,hkspeedup,DIRECT
-  - DOMAIN-KEYWORD,starrail,Proxy
-  - RULE-SET,HoYoverse,Proxy
+  - DOMAIN-KEYWORD,amazontrust,Gameplay
+  - DOMAIN-KEYWORD,xboxlive,Gameplay
+  - DOMAIN-KEYWORD,starrail,Gameplay
+  - RULE-SET,HoYoverse,Gameplay
   - RULE-SET,OpenAI,America
   - RULE-SET,YouTube,YouTube
   - RULE-SET,Netflix,Global
