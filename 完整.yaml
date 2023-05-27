@@ -301,6 +301,7 @@ rules: # 分流规则引用
   - DOMAIN-KEYWORD,amazontrust,Gameplay
   - DOMAIN-KEYWORD,xboxlive,Gameplay
   - DOMAIN-KEYWORD,starrail,Gameplay
+  - DOMAIN-KEYWORD,xboxab,Gameplay
   - RULE-SET,HoYoverse,Gameplay
   - RULE-SET,OpenAI,America
   - RULE-SET,YouTube,YouTube
