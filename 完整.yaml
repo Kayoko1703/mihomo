@@ -299,9 +299,8 @@ rules: # 分流规则引用
   - RULE-SET,AdvertisingMiTV,REJECT
   - DOMAIN-KEYWORD,hkspeedup,DIRECT
   - DOMAIN-KEYWORD,amazontrust,Gameplay
-  - DOMAIN-KEYWORD,xboxlive,Gameplay
+  - DOMAIN-KEYWORD,xbox,Gameplay
   - DOMAIN-KEYWORD,starrail,Gameplay
-  - DOMAIN-KEYWORD,xboxab,Gameplay
   - RULE-SET,HoYoverse,Gameplay
   - RULE-SET,OpenAI,America
   - RULE-SET,YouTube,YouTube
