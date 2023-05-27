@@ -106,7 +106,7 @@ proxy-groups: # 策略组
 - {name: Games, <<: *g}
 
 # 游戏
-- {name: Gameplay, url-test, interval: 180, <<: *u}
+- {name: Gameplay, type: url-test, interval: 180, <<: *u, filter: '^(?=.*((?i)游戏|🎮|(\b(GAME)\b)))(?!.*((?i)回国|校园)).*$', proxies: [Proxy,DIRECT]}
 
 # 国外网站
 - {name: Global, <<: *g}
