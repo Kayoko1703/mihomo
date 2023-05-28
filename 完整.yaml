@@ -71,9 +71,9 @@ d: &d {type: http, behavior: domain, interval: 86400}
 p: &p {type: http, interval: 3600, health-check: {enable: true, url: http://cp.cloudflare.com/generate_204, interval: 300}}
 # 远程订阅相关
 
-g: &g {type: select, proxies: [Proxy, Auto, Fallback, HongKong, TaiWan, Singapore, Japan, America, Loadbalance, DIRECT]}
+g: &g {type: select, proxies: [Proxy, Auto, Fallback, HongKong, TaiWan, Singapore, Japan, America, DIRECT]}
 
-m: &m {type: select, proxies: [DIRECT, Proxy, Auto, Fallback, HongKong, TaiWan, Singapore, Japan, America, Loadbalance]}
+m: &m {type: select, proxies: [DIRECT, Proxy, Auto, Fallback, HongKong, TaiWan, Singapore, Japan, America]}
 # 代理组相关
 
 proxies: # 本地服务器
@@ -91,13 +91,10 @@ proxy-providers: # 远程订阅
 proxy-groups: # 策略组
 
 # 节点切换
-- {name: Proxy, <<: *g, proxies: [Auto,Fallback,HongKong,TaiWan,Singapore,Japan,America,Loadbalance]}
+- {name: Proxy, <<: *g, proxies: [Auto,Fallback,HongKong,TaiWan,Singapore,Japan,America]}
 
 # 自动选择
 - {name: Auto, type: url-test, interval: 180, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|游戏|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
-
-# 负载均衡
-- {name: Loadbalance, type: load-balance, interval: 300, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|游戏|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
 
 # 故障转移
 - {name: Fallback, type: fallback, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|游戏|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
