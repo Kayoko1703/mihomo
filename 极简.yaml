@@ -1,122 +1,91 @@
-mixed-port: 8018
-# 本地混合代理(http和socks5合并）端口
-allow-lan: true
-# 允许局域网连接(false/true)
-bind-address:
-# 监听IP白名单（当allow-lan：true），只允许列表设备
-  '*'
-# 全部设备
-# 192.168.122.11
-# 单个ip4地址
-# "[aaaa::a8aa:ff:fe09:57d8]"
-# 单个ip6地址
+mixed-port: 8092
+allow-lan: false
+bind-address: "*"
 mode: rule
-# clash工作模式（rule/global/direct）
 log-level: info
-# 日志等级（info/warning/error/debug/silent）
-ipv6: true
-# IP6解析开关；如果为false，将返回ip6结果为空
-external-controller: 127.0.0.1:9090
-# 控制器监听地址
+ipv6: false
+external-controller: 0.0.0.0:9090
 dns:
-# DNS模块设置
+
   enable: true
-# DNS开关(false/true)
-  listen: 0.0.0.0:1053
-# DNS监听地址
+  listen: 0.0.0.0:7874
   ipv6: true
-# IP6解析开关；如果为false，将返回ip6结果为空
   default-nameserver:
-# 解析非IP的dns用的dns服务器,只支持纯IP
-    - 223.5.5.5
-    - 119.29.29.29
-    - 114.114.114.114
+  - 202.96.182.86
+  - 202.96.134.33
   enhanced-mode: fake-ip
-# DNS模式(redir-host/fake-ip)
-  fake-ip-range: 198.18.0.1/16
-# Fake-IP解析地址池
   fake-ip-filter:
-# Fake-ip过滤，列表中的域名返回真实ip
-    - '+.lan'
-# Local Area Network
-    - '+.stun.*.*'
-# Stun Services
-    - '+.stun.*.*.*'
-    - '+.stun.*.*.*.*'
-    - '+.stun.*.*.*.*.*'
-    - 'lens.l.google.com'
-# Google Voices
-    - '*.n.n.srv.nintendo.net'
-# Nintendo Switch
-    - '+.stun.playstation.net'
-# PlayStation
-    - 'xbox.*.*.microsoft.com'
-# XBox
-    - '*.*.xboxlive.com'
-# Microsoft
-    - '*.msftncsi.com'
-    - '*.msftconnecttest.com'
-# Bilibili CDN
-    - '*.mcdn.bilivideo.cn'
-  nameserver:
-# 默认DNS服务器，支持udp/tcp/dot/doh/doq
-    - https://223.5.5.5/dns-query
-    - https://1.12.12.12/dns-query
+  - "+.lan"
+  - "+.stun.*.*"
+  - "+.stun.*.*.*"
+  - "+.stun.*.*.*.*"
+  - "+.stun.*.*.*.*.*"
+  - lens.l.google.com
+  - "*.n.n.srv.nintendo.net"
+  - "+.stun.playstation.net"
+  - xbox.*.*.microsoft.com
+  - "*.*.xboxlive.com"
+  - "*.msftncsi.com"
+  - "*.msftconnecttest.com"
+  - "*.mcdn.bilivideo.cn"
 
-c: &c {type: http, behavior: classical, interval: 86400}
+p:
+  type: http
+  interval: 600
+  health-check: &1
+    enable: true
+    lazy: true
+    url: https://cp.cloudflare.com/generate_204
+    interval: 600
 
-d: &d {type: http, behavior: domain, interval: 86400}
-# 规则行为相关
+proxies:
+u:
+  type: select
+  use: &2
+  - P1
 
-p: &p {type: http, interval: 42300, health-check: {enable: true, url: http://cp.cloudflare.com/generate_204, interval: 300}}
-# 远程订阅相关
+proxy-providers:
 
-g: &g {type: select, proxies: [Proxy, Auto, Fallback, Loadbalance, DIRECT]}
+  P1:
+    type: http
+    interval: 43200
+    health-check: *1
+    url: https://gist.githubusercontent.com/0xqfz0/dc7f880ab7a1afaa60571a1eec7c745
+    path: "./proxy_providers/P1.yaml"
 
-m: &m {type: select, proxies: [DIRECT, Proxy, Auto, Fallback, Loadbalance]}
-# 代理组相关
+proxy-groups:
 
-proxies: # 本地服务器
+- name: 自动
+  type: url-test
+  interval: 600
+  lazy: true
+  use: *2
 
-u: &u {type: select, use: [MySubs]}
-# 订阅引用相关
+rule-providers:
 
-proxy-providers: # 远程订阅
-  MySubs: &MySubs
-    <<: *p
-    url: "订阅"
-    path: ./proxy_providers/mysubs.yaml
-# 1. 请使用Clash类型订阅链接填入引号""内使用
+  ChinaIP:
+    type: http
+    behavior: classical
+    interval: 43200
+    url: https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/ChinaIPs/ChinaIPs_Classical.yaml
+    path: "./rule_provider/ChinaIP.yaml"
 
-proxy-groups: # 策略组
+  China:
+    type: http
+    behavior: classical
+    interval: 43200
+    url: https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/China/China_Classical.yaml
+    path: "./rule_provider/China.yaml"
 
-# 节点切换
-- {name: Proxy, <<: *g, proxies: [Auto,Fallback,Loadbalance]}
+  Lan:
+    type: http
+    behavior: classical
+    interval: 43200
+    url: https://ghproxy.com/https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml
+    path: "./rule_provider/Lan.yaml"
 
-# 自动选择
-- {name: Auto, type: url-test, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
-
-# 负载均衡
-- {name: Loadbalance, type: load-balance, lazy: true, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
-
-# 故障转移
-- {name: Fallback, type: fallback, <<: *u, filter: '^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|联系|邮箱|工单|群|(\b(GAME|USE|USED|TOTAL|EXPIRE|EMAIL)\b|(\d{4}-\d{2}-\d{2}|\dG)))).*$'}
-
-rule-providers: # 远程规则集
-
-  HoYoverse: # 米哈游
-    <<: *d
-    url: "https://ghproxy.com/https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/release/rule/Clash/HoYoverse/HoYoverse.yaml"
-    path: ./ruleset/HoYoverse.yaml
-    
-  Advertising: # 去广告
-    <<: *d
-    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Advertising/Advertising_Domain.yaml"
-    path: ./ruleset/Advertising.yaml
-
-rules: # 分流规则引用
-  - RULE-SET,Advertising,REJECT
-  - DOMAIN-KEYWORD,hkspeedup,DIRECT
-  - DOMAIN-KEYWORD,starrail,Auto
-  - RULE-SET,HoYoverse,Auto
-  - MATCH,Proxy
+rules:
+- RULE-SET,Lan,DIRECT
+- RULE-SET,China,DIRECT
+- RULE-SET,ChinaIP,DIRECT
+- MATCH,自动
