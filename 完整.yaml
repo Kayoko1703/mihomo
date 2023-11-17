@@ -55,14 +55,14 @@ proxy-providers:
     type: http
     interval: 43200
     health-check: *1
-    url: https://gist.githubusercontent.com/0xqfz0/dc7f880ab7a1afaa60571a1eec7c745
+    url: 订阅链接
     path: "./proxy_providers/P1.yaml"
 
   P2:
     type: http
     interval: 43200
     health-check: *1
-    url: https://gist.githubusercontent.com/0xqfz0/dc7f880ab7a1afaa60571a1eec7c745
+    url: 订阅链接
     path: "./proxy_providers/P2.yaml"
 
 
