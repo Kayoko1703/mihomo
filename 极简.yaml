@@ -54,11 +54,12 @@ proxy-providers:
     path: "./proxy_providers/P1.yaml"
 
 proxy-groups:
+
 - name: 选择
   type: select
-  use: 
+  proxies: 
   - 自动
-  - P1
+  use: *2
   
 - name: 自动
   type: url-test
