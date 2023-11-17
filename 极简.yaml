@@ -50,15 +50,19 @@ proxy-providers:
     type: http
     interval: 43200
     health-check: *1
-    url: https://gist.githubusercontent.com/0xqfz0/dc7f880ab7a1afaa60571a1eec7c745
+    url: 链接
     path: "./proxy_providers/P1.yaml"
 
 proxy-groups:
-
+- name: 选择
+  type: select
+  use: 
+  - 自动
+  - P1
+  
 - name: 自动
   type: url-test
-  interval: 600
-  lazy: true
+  interval: 180
   use: *2
 
 rule-providers:
@@ -88,4 +92,4 @@ rules:
 - RULE-SET,Lan,DIRECT
 - RULE-SET,China,DIRECT
 - RULE-SET,ChinaIP,DIRECT
-- MATCH,自动
+- MATCH,选择
