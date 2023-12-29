@@ -39,11 +39,7 @@ p:
     interval: 600
 
 proxies:
-u:
-  type: select
-  use: &9
-  - P2
-  
+
 k:
   type: select
   use: &2
@@ -58,14 +54,6 @@ proxy-providers:
     url: 订阅链接
     path: "./proxy_providers/P1.yaml"
 
-  P2:
-    type: http
-    interval: 43200
-    health-check: *1
-    url: 订阅链接
-    path: "./proxy_providers/P2.yaml"
-
-
 proxy-groups:
 
 - name: 地区选择
@@ -75,12 +63,8 @@ proxy-groups:
   - 日本
   - 新加坡
   - 美国
-  - 手动
   - DIRECT
-
-- name: 手动
-  type: select
-  use: *9
+  use: *2
   
 - name: 香港
   type: url-test
