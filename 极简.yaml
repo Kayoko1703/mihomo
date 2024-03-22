@@ -1,18 +1,24 @@
-mixed-port: 8092
-allow-lan: false
+mixed-port: 8888
+allow-lan: true
 bind-address: "*"
 mode: rule
 log-level: info
-ipv6: false
+ipv6: true
+unified-delay: true
+geo-auto-update: true
+geo-update-interval: 72
+geox-url:
+  mmdb: "https://www.nsloon.com/openloon/import?geoip=https://gitlab.com/Masaiki/GeoIP2-CN/-/raw/release/Country.mmdb"
 external-controller: 0.0.0.0:9090
+
 dns:
 
   enable: true
   listen: 0.0.0.0:7874
   ipv6: true
   default-nameserver:
-  - 202.96.182.86
-  - 202.96.134.33
+  - 223.5.5.5
+  - 114.114.114.114
   enhanced-mode: fake-ip
   fake-ip-filter:
   - "+.lan"
@@ -20,10 +26,10 @@ dns:
   - "+.stun.*.*.*"
   - "+.stun.*.*.*.*"
   - "+.stun.*.*.*.*.*"
-  - lens.l.google.com
+  - "lens.l.google.com"
   - "*.n.n.srv.nintendo.net"
   - "+.stun.playstation.net"
-  - xbox.*.*.microsoft.com
+  - "xbox.*.*.microsoft.com"
   - "*.*.xboxlive.com"
   - "*.msftncsi.com"
   - "*.msftconnecttest.com"
@@ -39,48 +45,46 @@ p:
     interval: 600
 
 proxies:
-u:
+
+k:
   type: select
   use: &2
-  - P1
+  - Sub
 
 proxy-providers:
 
-  P1:
+  Sub:
     type: http
     interval: 43200
     health-check: *1
-    url: 链接
-    path: "./proxy_providers/P1.yaml"
-
+    url: 订阅
+    path: "./proxy_providers/Sub.yaml"
+    
 proxy-groups:
 
-- name: 选择
+- name: Final
   type: select
   proxies: 
   - 自动
+  - DIRECT
   use: *2
-  
+  filter: "^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|群)).*$"
+
 - name: 自动
   type: url-test
-  interval: 180
+  interval: 300
+  lazy: true
   use: *2
+  filter: "^(?=.*(.*))(?!.*((?i)回国|校园|教育|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|到期|过期|已用|群|游戏|GAME|🎮)).*$"
+
+- name: 美国
+  type: url-test
+  interval: 300
+  lazy: true
+  use: *2
+  filter: "^(?=.*((?i)\U0001F1FA\U0001F1F8|美国|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|(\\b(US|UnitedStates)\\b)))(?!.*((?i)回国|校园|游戏|(\\b(GAME)\\b))).*$"
 
 rule-providers:
-
-  ChinaIP:
-    type: http
-    behavior: classical
-    interval: 43200
-    url: https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/ChinaIPs/ChinaIPs_Classical.yaml
-    path: "./rule_provider/ChinaIP.yaml"
-
-  China:
-    type: http
-    behavior: classical
-    interval: 43200
-    url: https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/China/China_Classical.yaml
-    path: "./rule_provider/China.yaml"
 
   Lan:
     type: http
@@ -89,8 +93,31 @@ rule-providers:
     url: https://ghproxy.com/https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml
     path: "./rule_provider/Lan.yaml"
 
+  Anti-AD:
+    type: http
+    behavior: domain
+    interval: 43200
+    url: https://anti-ad.net/clash.yaml
+    path: "./rule_provider/AD.yaml"
+
+  Spotify:
+    type: http
+    behavior: classical
+    interval: 43200
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Spotify/Spotify.yaml
+    path: "./rule_provider/Spotify.yaml"
+
+  Twitter:
+    type: http
+    behavior: classical
+    interval: 43200
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Twitter/Twitter.yaml
+    path: "./rule_provider/Twitter.yaml"
+ 
 rules:
 - RULE-SET,Lan,DIRECT
-- RULE-SET,China,DIRECT
-- RULE-SET,ChinaIP,DIRECT
-- MATCH,选择
+- RULE-SET,Anti-AD,REJECT,no-resolve
+- RULE-SET,Spotify,美国,no-resolve
+- RULE-SET,Twitter,美国,no-resolve
+- GEOIP,CN,DIRECT
+- MATCH,Final
