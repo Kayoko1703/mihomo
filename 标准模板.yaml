@@ -75,7 +75,7 @@ sniffer:
 proxy-providers:
   Sub:
     type: http
-    url: "https://gist.githubusercontent.com/0xqfz0/dc7f880ab7a1afaa60571a1eec7c7455/raw/oc"
+    url: "订阅链接"
     path: ./proxy_providers/Sub.yaml
     interval: 3600
     health-check:
