@@ -14,14 +14,22 @@ ipv6: true
 find-process-mode: strict
 external-controller: 0.0.0.0:9090
 secret: "000"
-profile:
-  store-selected: true
-  # 储存 API 对策略组的选择，以供下次启动时使用
-  store-fake-ip: false
-  # 储存 fakeip 映射表，域名再次发生连接时，使用原有映射地址
-unified-delay: false
+geodata-mode: false
+geodata-loader: standard
+geo-auto-update: true
+geo-update-interval: 24
+unified-delay: true
 tcp-concurrent: true
 
+geox-url:
+  geoip: 'https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geoip.dat'
+  geosite: 'https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geosite.dat'
+  mmdb: 'https://gitlab.com/Masaiki/GeoIP2-CN/-/raw/release/Country.mmdb'
+  asn: 'https://github.com/xishang0128/geoip/releases/download/latest/GeoLite2-ASN.mmdb'
+
+profile:
+  store-selected: true
+  store-fake-ip: false
 
 dns:
   enable: true
@@ -35,24 +43,27 @@ dns:
   fake-ip-range: 198.18.0.1/16
   fake-ip-filter:
     - '*.lan'
-  nameserver-policy:
-    'geosite:cn': https://doh.pub/dns-query
   nameserver:
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
+  fallback:
+  - tls://1.0.0.1:853
+  - https://cloudflare-dns.com/dns-query
+  - https://dns.google/dns-query
   fallback-filter:
     geoip: true
-    geoip-code: CN
-    geosite:
-      - gfw
     ipcidr:
-      - 240.0.0.0/4
-    domain:
-      - '+.google.com'
-      - '+.facebook.com'
-      - '+.youtube.com'
+    - 240.0.0.0/4
+    - 0.0.0.0/32
 
-      
+tun:
+  enable: true
+  stack: mixed
+  auto-route: true
+  auto-detect-interface: true
+  dns-hijack:
+  - tcp://any:53
+
 sniffer:
   enable: true
   force-dns-mapping: true
@@ -71,254 +82,220 @@ sniffer:
   skip-domain:
     - Mijia Cloud
 
+proxies:
 
-proxy-providers:
-  Sub:
-    type: http
-    url: "订阅链接"
-    path: ./proxy_providers/Sub.yaml
-    interval: 3600
-    health-check:
+Sub: &sub
+  type: http
+  interval: 86400
+  health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
-      interval: 60
-      timeout: 1000
+      interval: 120
+      timeout: 2000
       lazy: true
-    filter: "^(?=.*(.))(?!.*((?i)群|邀请|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|无法|说明|使用|提示|特别|访问|支持|(\b(USE|USED|TOTAL|EXPIRE|EMAIL|Panel)\b))).*$"
 
+UseSub:
+  type: select
+  use: &node
+  - 机场1
+  - 机场2
+  - 机场3
+
+Subrules: &rule
+  type: http
+  behavior: classical
+  interval: 3600
+
+Urltest: &url
+  type: url-test
+  url: 'https://www.gstatic.com/generate_204'
+  interval: 20
+  timeout: 2000
+  tolerance: 20
+  hidden: true
+  lazy: true
+
+Fallback: &fall
+  type: fallback
+  url: 'https://www.gstatic.com/generate_204'
+  interval: 10
+  timeout: 2000
+  hidden: true
+  lazy: true
+
+FilterHK: &HK '^(?=.*((?i)🇭🇰|香港|(\b(HK|Hong)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\b(GAME)\b))).*$'
+FilterTW: &TW '^(?=.*((?i)🇹🇼|台湾|(\b(TW|Tai|Taiwan)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\b(GAME)\b))).*$'
+FilterJP: &JP '^(?=.*((?i)🇯🇵|日本|川日|东京|大阪|泉日|埼玉|(\b(JP|Japan)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\b(GAME)\b))).*$'
+FilterSG: &SG '^(?=.*((?i)🇸🇬|新加坡|狮|(\b(SG|Singapore)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\b(GAME)\b))).*$'
+FilterUS: &US '^(?=.*((?i)🇺🇸|美国|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|(\b(US|United States)\b)))(?!.*((?i)回国|校园|游戏|专用|🎮|(\b(GAME)\b))).*$'
+FilterGame: &Game '^(?=.*((?i)游戏|🎮|(\b(GAME)\b)))(?!.*((?i)回国|校园)).*$'
+FilterAll: &ALL '^(?=.*(.))(?!.*((?i)群|邀请|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|无法|说明|使用|提示|特别|🎮|访问|支持|教程|关注|更新|作者|加入|(\b(USE|USED|TOTAL|EXPIRE|EMAIL|Panel|Channel|Author)\b|(\d{4}-\d{2}-\d{2}|\d+G)))).*$'
+
+Group: &group
+  type: select
+  proxies:
+  - 📍地区选择
+  - 🇭🇰香港策略
+  - 🇸🇬新加坡策略
+  - 🇯🇵日本策略
+  - 🇺🇸美国策略
+  - 🇨🇳台湾策略
+
+proxy-providers:
+    
+  机场1:
+    url: "订阅1"
+    path: ./proxy_providers/Sub.yaml
+    <<: *sub
+
+  机场2:
+    url: "订阅2"
+    path: ./proxy_providers/Sub1.yaml
+    <<: *sub
+
+  机场3:
+    url: "订阅3"
+    path: ./proxy_providers/Sub3.yaml
+    <<: *sub
 
 proxy-groups:
-#分流策略
-- name: "Proxy"
+
+- name: "📍地区选择"
   type: select
   proxies:
-  - AUTO
-  - HK
-  - JP
-  - US
-  - SG
+  - 🇭🇰香港策略
+  - 🇸🇬新加坡策略
+  - 🇯🇵日本策略
+  - 🇺🇸美国策略
+  - 🇨🇳台湾策略
 
-- name: "Google"
+- name: "🎵Spotify"
+  <<: *group
+  
+- name: "📱Telegram"
+  <<: *group
+
+- name: "🤖AI"
+  <<: *group
+
+#手动区
+- name: "香港手动"
   type: select
-  proxies:
-  - AUTO
-  - HK
-  - JP
-  - US
-  - SG
-  
-- name: "Spotify"
+  use: *node
+  filter: *HK
+
+- name: "新加坡手动"
   type: select
-  proxies:
-  - AUTO
-  - HK
-  - JP
-  - US
-  - SG
-  
-- name: "Twitter"
+  use: *node
+  filter: *SG
+
+- name: "日本手动"
   type: select
-  proxies:
-  - AUTO
-  - HK
-  - JP
-  - US
-  - SG
-  
-- name: "YouTube"
+  use: *node
+  filter: *JP
+
+- name: "美国手动"
   type: select
-  proxies:
-  - AUTO
-  - HK
-  - JP
-  - US
-  - SG
-  
+  use: *node
+  filter: *US
 
-#模式选择
-- name: "AUTO"
+- name: "台湾手动"
   type: select
+  use: *node
+  filter: *TW
+
+#自动区
+
+- name: "🇭🇰香港策略"
+  <<: *fall
   proxies:
-  - AUTO url-test
-  - AUTO load-balance
+  - 香港手动
+  - 香港自动
 
-- name: "HK"
-  type: select
+- name: "🇸🇬新加坡策略"
+  <<: *fall
   proxies:
-  - HK url-test
-  - HK load-balance
+  - 新加坡手动
+  - 新加坡自动
 
-- name: "JP"
-  type: select
+- name: "🇯🇵日本策略"
+  <<: *fall
   proxies:
-  - JP url-test
-  - JP load-balance
+  - 日本手动
+  - 日本自动
 
-- name: "US"
-  type: select
+- name: "🇺🇸美国策略"
+  <<: *fall
   proxies:
-  - US url-test
-  - AUTO load-balance
+  - 美国手动
+  - 美国自动
   
-- name: "SG"
-  type: select
+- name: "🇨🇳台湾策略"
+  <<: *fall
   proxies:
-  - SG url-test
-  - SG load-balance
+  - 台湾手动
+  - 台湾自动
 
-
-#全部节点
-- name: "AUTO url-test"
-  type: url-test
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 300
-  lazy: true
-
+- name: "香港自动"
+  <<: *url
+  use: *node
+  filter: *HK
   
-- name: "AUTO load-balance"
-  type: load-balance
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 300
-  lazy: true
-  strategy: consistent-hashing
+- name: "新加坡自动"
+  <<: *url
+  use: *node
+  filter: *SG
 
-  
-#香港节点
-- name: "HK url-test"
-  type: url-test
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 120
-  lazy: true
-  filter: "^(?=.*((?i)🇭🇰|香港|(\b(HK|Hong)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\\b(GAME)\\b))).*$"
-  
-- name: "HK load-balance"
-  type: load-balance
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 300
-  lazy: true
-  strategy: consistent-hashing
-  filter: "^(?=.*((?i)🇭🇰|香港|(\b(HK|Hong)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\\b(GAME)\\b))).*$"
-  
-#日本节点
-- name: "JP url-test"
-  type: url-test
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 120
-  lazy: true
-  filter: "^(?=.*((?i)🇯🇵|日本|川日|东京|大阪|泉日|埼玉|(\b(JP|Japan)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\\b(GAME)\\b))).*$"
+- name: "日本自动"
+  <<: *url
+  use: *node
+  filter: *JP
 
+- name: "美国自动"
+  <<: *url
+  use: *node
+  filter: *US
   
-- name: "JP load-balance"
-  type: load-balance
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 300
-  lazy: true
-  strategy: consistent-hashing
-  filter: "^(?=.*((?i)🇯🇵|日本|川日|东京|大阪|泉日|埼玉|(\b(JP|Japan)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\\b(GAME)\\b))).*$"
-
-#美国节点
-- name: "US url-test"
-  type: url-test
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 120
-  lazy: true
-  filter: "^(?=.*((?i)🇺🇸|美国|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|(\b(US|United States)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\\b(GAME)\\b))).*$"
-
-- name: "US load-balance"
-  type: load-balance
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 300
-  lazy: true
-  strategy: consistent-hashing
-  filter: "^(?=.*((?i)🇺🇸|美国|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|(\b(US|United States)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\\b(GAME)\\b))).*$"
-
-#新加坡节点
-- name: "SG url-test"
-  type: url-test
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 120
-  lazy: true
-  filter: "^(?=.*((?i)🇸🇬|新加坡|狮|(\b(SG|Singapore)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\\b(GAME)\\b))).*$"
-  
-- name: "SG load-balance"
-  type: load-balance
-  use:
-  - Sub
-  url: 'https://www.gstatic.com/generate_204'
-  interval: 300
-  lazy: true
-  strategy: consistent-hashing
-  filter: "^(?=.*((?i)🇸🇬|新加坡|狮|(\b(SG|Singapore)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\\b(GAME)\\b))).*$"
-  
+- name: "台湾自动"
+  <<: *url
+  use: *node
+  filter: *TW
 
 rule-providers:
 
   Lan:
-    type: http
-    behavior: classical
-    interval: 3600
+    <<: *rule
     url: https://raw.githubusercontent.com/dler-io/Rules/main/Clash/Provider/LAN.yaml
     path: "./rule_provider/Lan.yaml"
 
-  Anti-AD:
+  AD:
     type: http
     behavior: domain
     interval: 3600
-    url: https://anti-ad.net/clash.yaml
+    format: 'text'
+    url: https://adrules.top/adrules_domainset.txt
     path: "./rule_provider/AD.yaml"
-    
+
   Spotify:
-    type: http
-    behavior: classical
-    interval: 3600
+    <<: *rule
     url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Spotify/Spotify.yaml
     path: "./rule_provider/Spotify.yaml"
 
-  Twitter:
-    type: http
-    behavior: classical
-    interval: 3600
-    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Twitter/Twitter.yaml
-    path: "./rule_provider/Twitter.yaml"
-    
-  Google:
-    type: http
-    behavior: classical
-    interval: 3600
-    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml
-    path: "./rule_provider/Google.yaml"
+  Telegram:
+    <<: *rule
+    url: https://gitlab.com/lodepuly/vpn_tool/-/raw/master/Tool/Clash/Rule/Telegram.yaml
+    path: "./rule_provider/Telegram.yaml"
 
-  YouTube:
-    type: http
-    behavior: classical
-    interval: 3600
-    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTube/YouTube.yaml
-    path: "./rule_provider/YouTube.yaml"
+  AI:
+    <<: *rule
+    url: https://gitlab.com/lodepuly/vpn_tool/-/raw/master/Tool/Clash/Rule/AI.yaml
+    path: "./rule_provider/AI.yaml"
 
 rules:
 - RULE-SET,Lan,DIRECT
-- RULE-SET,Anti-AD,REJECT
-- RULE-SET,Google,Google
-- RULE-SET,Spotify,Spotify
-- RULE-SET,YouTube,YouTube
-- RULE-SET,Twitter,Twitter
+- RULE-SET,AD,REJECT
+- RULE-SET,Telegram,📱Telegram
+- RULE-SET,Spotify,🎵Spotify
+- RULE-SET,AI,🤖AI
 - GEOIP,CN,DIRECT
-- MATCH,Proxy
+- MATCH,📍地区选择
